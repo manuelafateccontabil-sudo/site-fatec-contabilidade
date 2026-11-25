@@ -26,29 +26,6 @@
     --shadow:rgba(10,20,30,0.10);
     --chip-bg:rgba(0,58,92,0.06);
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#0E151D;
-      --paper-raised:#16212B;
-      --ink:#ECE8DD;
-      --ink-soft:#A9B1BD;
-      --border:#273241;
-      --shadow:rgba(0,0,0,0.45);
-      --chip-bg:rgba(191,224,245,0.08);
-      --gold:#D9B068;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#0E151D;
-    --paper-raised:#16212B;
-    --ink:#ECE8DD;
-    --ink-soft:#A9B1BD;
-    --border:#273241;
-    --shadow:rgba(0,0,0,0.45);
-    --chip-bg:rgba(191,224,245,0.08);
-    --gold:#D9B068;
-  }
-
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
@@ -72,8 +49,6 @@
     font-weight:500;
   }
   a{color:var(--navy);}
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) a{color:var(--sky);} }
-  :root[data-theme="dark"] a{color:var(--sky);}
   .label{
     font-family:'Baloo 2',sans-serif;
     font-size:0.74rem;
@@ -357,8 +332,6 @@
   .ov-card h3{font-size:1.18rem;}
   .ov-card p{color:var(--ink-soft); font-size:0.93rem; margin:0;}
   .ov-card .go{font-family:'Baloo 2',sans-serif; font-weight:700; font-size:0.78rem; color:var(--navy); margin-top:4px;}
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ov-card .go{color:var(--sky);} }
-  :root[data-theme="dark"] .ov-card .go{color:var(--sky);}
 
   /* department section */
   .dept{
@@ -414,7 +387,6 @@
     text-transform:uppercase; color:var(--gold); margin-bottom:10px;
     display:block;
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .block-label{color:var(--gold);} }
   .competencias p{margin:0; color:var(--ink); font-size:0.98rem;}
 
   .obrig-tags{display:flex; flex-wrap:wrap; gap:8px;}
@@ -427,10 +399,6 @@
     padding:5px 12px;
     letter-spacing:0.01em;
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]) .obrig-tag{ color:var(--sky); border-color:var(--sky); }
-  }
-  :root[data-theme="dark"] .obrig-tag{ color:var(--sky); border-color:var(--sky); }
   .obrig-note{
     margin:10px 0 0; font-size:0.86rem; color:var(--ink-soft); font-style:italic;
     font-family:'Nunito',sans-serif;
@@ -463,8 +431,6 @@
     font-family:'Baloo 2',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.04em;
     color:var(--navy);
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .dicas-label{color:var(--sky);} }
-  :root[data-theme="dark"] .dicas-label{color:var(--sky);}
 
   /* migração de contabilidade */
   .migration-box{
@@ -660,8 +626,6 @@
     font-family:'Playfair Display',serif; font-style:italic; font-weight:500;
     font-size:1.2rem; color:var(--navy);
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .quem-somos-signature{color:var(--sky);} }
-  :root[data-theme="dark"] .quem-somos-signature{color:var(--sky);}
   .quem-somos-stat{
     background:var(--navy-deep); border-radius:14px; padding:32px 28px;
     display:flex; flex-direction:column; gap:6px; text-align:center;
@@ -702,7 +666,6 @@
   }
 
   .ov-card-icon{width:28px; height:28px; color:var(--gold); margin-bottom:2px;}
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ov-card-icon{color:var(--gold);} }
 
   /* reforma tributaria timeline */
   .timeline{display:flex; flex-direction:column; gap:0; position:relative;}
@@ -740,8 +703,6 @@
     color:var(--navy); background:none; border:1px solid var(--navy);
     border-radius:999px; padding:10px 20px; cursor:pointer;
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn-ghost-dark{color:var(--sky); border-color:var(--sky);} }
-  :root[data-theme="dark"] .btn-ghost-dark{color:var(--sky); border-color:var(--sky);}
   .btn-ghost-dark:hover{background:var(--chip-bg);}
 
   .staff-modal{position:fixed; inset:0; z-index:200;}
@@ -786,8 +747,6 @@
     background:none; border:none; color:var(--navy); font-weight:700; cursor:pointer;
     padding:0; text-decoration:underline; font-family:inherit; font-size:inherit;
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .staff-auth-switch button{color:var(--sky);} }
-  :root[data-theme="dark"] .staff-auth-switch button{color:var(--sky);}
   .news-form-row{display:grid; grid-template-columns:2fr 1fr; gap:16px;}
   @media (max-width:560px){ .news-form-row{grid-template-columns:1fr;} }
   .news-form-actions{display:flex; gap:12px; align-items:center;}
@@ -815,8 +774,6 @@
     font-family:'Baloo 2',sans-serif; font-weight:700; font-size:0.78rem; cursor:pointer;
     background:none; border:none; color:var(--navy); padding:0; text-decoration:underline;
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .news-card-admin button{color:var(--sky);} }
-  :root[data-theme="dark"] .news-card-admin button{color:var(--sky);}
   .news-empty{color:var(--ink-soft); font-style:italic;}
 </style>
 </head>
