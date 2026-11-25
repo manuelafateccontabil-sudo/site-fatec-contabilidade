@@ -2,3 +2,4 @@
 ~$*
 ~WRL*.tmp
 *.tmp
+.slides-build/
