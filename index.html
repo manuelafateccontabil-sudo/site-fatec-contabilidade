@@ -1548,12 +1548,12 @@
 
           <h3 id="staff-login-title" style="margin-bottom:16px;">Entrar</h3>
           <form id="staff-login-form">
-            <label for="staff-login-user">Usuário</label>
-            <input type="text" id="staff-login-user" autocomplete="username" required />
+            <label for="staff-login-user">E-mail</label>
+            <input type="email" id="staff-login-user" autocomplete="username" required />
             <label for="staff-login-password">Senha</label>
             <input type="password" id="staff-login-password" autocomplete="current-password" required />
             <button type="submit" class="btn-primary" style="width:100%; margin-top:6px;">Entrar</button>
-            <p id="staff-login-error" class="staff-auth-error" hidden>Usuário ou senha incorretos.</p>
+            <p id="staff-login-error" class="staff-auth-error" hidden>E-mail ou senha incorretos.</p>
           </form>
           <p class="staff-auth-switch">Ainda não tem conta? <button type="button" id="staff-show-signup">Criar conta</button></p>
 
@@ -1561,16 +1561,16 @@
           <form id="staff-signup-form" style="display:none;">
             <label for="staff-signup-name">Seu nome</label>
             <input type="text" id="staff-signup-name" required />
-            <label for="staff-signup-user">Escolha um usuário</label>
-            <input type="text" id="staff-signup-user" autocomplete="username" required />
-            <label for="staff-signup-password">Escolha uma senha</label>
-            <input type="password" id="staff-signup-password" autocomplete="new-password" required />
+            <label for="staff-signup-user">Seu e-mail</label>
+            <input type="email" id="staff-signup-user" autocomplete="username" required />
+            <label for="staff-signup-password">Escolha uma senha (mínimo 6 caracteres)</label>
+            <input type="password" id="staff-signup-password" autocomplete="new-password" minlength="6" required />
             <button type="submit" class="btn-primary" style="width:100%; margin-top:6px;">Criar conta e entrar</button>
-            <p id="staff-signup-error" class="staff-auth-error" hidden>Esse usuário já existe. Escolha outro.</p>
+            <p id="staff-signup-error" class="staff-auth-error" hidden>Esse e-mail já está cadastrado.</p>
           </form>
           <p class="staff-auth-switch" id="staff-show-login-wrap" style="display:none;">Já tem conta? <button type="button" id="staff-show-login">Entrar</button></p>
 
-          <p class="staff-auth-note">Protótipo: as contas ficam salvas só neste navegador, não é um sistema de login real com banco de dados — isso precisa ser feito quando o site for para hospedagem própria.</p>
+          <p class="staff-auth-note">Login real, com banco de dados compartilhado — funciona em qualquer computador ou celular, com a mesma conta.</p>
         </div>
       </div>
 
@@ -1588,7 +1588,6 @@
             <button type="button" id="news-cancel" class="btn-ghost-dark">Cancelar edição</button>
           </div>
         </form>
-        <p class="staff-auth-note">As notícias publicadas aqui ficam salvas apenas neste navegador — é uma demonstração do fluxo, não um banco de dados compartilhado com os visitantes do site.</p>
       </div>
 
       <div id="news-grid" class="news-grid"></div>
@@ -1626,6 +1625,7 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1752,43 +1752,26 @@
   var grid = document.getElementById('news-grid');
   if (!grid) return;
 
-  var STAFF_KEY = 'fatec_staff_mode';
-  var USERS_KEY = 'fatec_staff_users';
-  var NEWS_KEY = 'fatec_news_posts';
-  // Protótipo: cada pessoa cria a própria conta (usuário + senha), guardada no
-  // localStorage DESTE navegador. Isso NÃO é um login seguro de verdade — não há
-  // criptografia nem banco de dados compartilhado; é só para testar o fluxo de
-  // publicação e identificar quem publicou o quê. No site definitivo, isso precisa
-  // virar autenticação real, num servidor, com senhas com hash.
-  function loadUsers(){
-    try {
-      var raw = localStorage.getItem(USERS_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch(e){ return []; }
-  }
-  function saveUsers(users){
-    try { localStorage.setItem(USERS_KEY, JSON.stringify(users)); } catch(e){}
-  }
+  var SUPABASE_URL = 'https://lqngawbbzuxbzphytzff.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_SbxKUTJZ_AEJ5LtxSEAU1A_A_hClM5y';
+  var supabaseClient = (window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+  var currentUser = null; // {id, email, name}
 
   var seedPosts = [
-    {id:'seed-1', title:'Exemplo: o que muda no cronograma da Reforma Tributária em 2027', date:'2026-12-05', excerpt:'Isto é um exemplo de notícia, só para mostrar como o card aparece aqui — substitua pelo conteúdo real sobre tributos, fiscal, pessoal ou legalização.', image:null},
-    {id:'seed-2', title:'Exemplo: eSocial — novas regras para admissão de funcionários', date:'2026-12-18', excerpt:'Outro exemplo de notícia, ilustrando o formato usado nesta página para assuntos do Departamento Pessoal.', image:null}
+    {id:'seed-1', title:'Exemplo: o que muda no cronograma da Reforma Tributária em 2027', date:'2026-12-05', excerpt:'Isto é um exemplo de notícia, só para mostrar como o card aparece aqui — substitua pelo conteúdo real sobre tributos, fiscal, pessoal ou legalização.', image_url:null, author:null},
+    {id:'seed-2', title:'Exemplo: eSocial — novas regras para admissão de funcionários', date:'2026-12-18', excerpt:'Outro exemplo de notícia, ilustrando o formato usado nesta página para assuntos do Departamento Pessoal.', image_url:null, author:null}
   ];
 
-  function loadPosts(){
+  async function loadPosts(){
+    if (!supabaseClient) return seedPosts.slice();
     try {
-      var raw = localStorage.getItem(NEWS_KEY);
-      return raw ? JSON.parse(raw) : seedPosts.slice();
+      var res = await supabaseClient.from('news').select('*').order('date', {ascending:false});
+      if (res.error) return seedPosts.slice();
+      return (res.data && res.data.length) ? res.data : seedPosts.slice();
     } catch(e){ return seedPosts.slice(); }
-  }
-  function savePosts(posts){
-    try { localStorage.setItem(NEWS_KEY, JSON.stringify(posts)); } catch(e){}
-  }
-  function staffName(){
-    try { return localStorage.getItem(STAFF_KEY) || ''; } catch(e){ return ''; }
-  }
-  function isStaff(){
-    return staffName() !== '';
   }
   function escapeHtml(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -1818,9 +1801,7 @@
   var formTitle = document.getElementById('news-form-title');
   var cancelBtn = document.getElementById('news-cancel');
 
-  function render(){
-    var posts = loadPosts().slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
-    var staff = isStaff();
+  function renderPosts(posts, staff){
     if (!posts.length){
       grid.innerHTML = '<p class="news-empty">Nenhuma notícia publicada ainda.</p>';
       return;
@@ -1828,7 +1809,7 @@
     grid.innerHTML = posts.map(function(p){
       return (
         '<article class="news-card">' +
-          (p.image ? '<div class="news-card-img"><img src="' + escapeHtml(p.image) + '" alt="" /></div>' : '') +
+          (p.image_url ? '<div class="news-card-img"><img src="' + escapeHtml(p.image_url) + '" alt="" /></div>' : '') +
           '<div class="news-card-body">' +
             '<span class="news-date">' + escapeHtml(formatDate(p.date)) + '</span>' +
             '<h3>' + escapeHtml(p.title) + '</h3>' +
@@ -1844,6 +1825,10 @@
         '</article>'
       );
     }).join('');
+  }
+  async function render(){
+    var posts = await loadPosts();
+    renderPosts(posts, !!currentUser);
   }
 
   function showLoginMode(){
@@ -1872,8 +1857,8 @@
   function closeStaffModal(){ if (staffModal) staffModal.hidden = true; }
 
   function updateStaffUI(){
-    var staff = isStaff();
-    if (staffToggle) staffToggle.textContent = staff ? ('Sair (' + staffName() + ')') : 'Acesso interno';
+    var staff = !!currentUser;
+    if (staffToggle) staffToggle.textContent = staff ? ('Sair (' + currentUser.name + ')') : 'Acesso interno';
     if (adminPanel) adminPanel.hidden = !staff;
     closeStaffModal();
     render();
@@ -1881,9 +1866,8 @@
 
   if (staffToggle){
     staffToggle.addEventListener('click', function(){
-      if (isStaff()){
-        localStorage.removeItem(STAFF_KEY);
-        updateStaffUI();
+      if (currentUser){
+        if (supabaseClient) supabaseClient.auth.signOut();
       } else {
         openStaffModal();
       }
@@ -1903,44 +1887,65 @@
   if (showLoginBtn) showLoginBtn.addEventListener('click', showLoginMode);
 
   if (loginForm){
-    loginForm.addEventListener('submit', function(e){
+    loginForm.addEventListener('submit', async function(e){
       e.preventDefault();
-      var user = document.getElementById('staff-login-user').value.trim().toLowerCase();
+      if (!supabaseClient) return;
+      var email = document.getElementById('staff-login-user').value.trim();
       var pass = document.getElementById('staff-login-password').value;
-      var match = loadUsers().filter(function(u){ return u.user === user && u.password === pass; })[0];
-      if (match){
-        try { localStorage.setItem(STAFF_KEY, match.name); } catch(err){}
+      var btn = loginForm.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+      var res = await supabaseClient.auth.signInWithPassword({email:email, password:pass});
+      if (btn) btn.disabled = false;
+      if (res.error){
+        if (loginError) loginError.hidden = false;
+      } else {
         loginForm.reset();
-        updateStaffUI();
-      } else if (loginError) {
-        loginError.hidden = false;
+        if (loginError) loginError.hidden = true;
       }
     });
   }
 
   if (signupForm){
-    signupForm.addEventListener('submit', function(e){
+    signupForm.addEventListener('submit', async function(e){
       e.preventDefault();
+      if (!supabaseClient) return;
       var name = document.getElementById('staff-signup-name').value.trim();
-      var user = document.getElementById('staff-signup-user').value.trim().toLowerCase();
+      var email = document.getElementById('staff-signup-user').value.trim();
       var pass = document.getElementById('staff-signup-password').value;
-      if (!name || !user || !pass) return;
-      var users = loadUsers();
-      if (users.some(function(u){ return u.user === user; })){
-        if (signupError) signupError.hidden = false;
-        return;
+      if (!name || !email || !pass) return;
+      var btn = signupForm.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+      var res = await supabaseClient.auth.signUp({
+        email: email,
+        password: pass,
+        options: { data: { name: name } }
+      });
+      if (btn) btn.disabled = false;
+      if (res.error){
+        if (signupError){
+          signupError.textContent = res.error.message;
+          signupError.hidden = false;
+        }
+      } else {
+        signupForm.reset();
+        if (signupError) signupError.hidden = true;
       }
-      users.push({name:name, user:user, password:pass});
-      saveUsers(users);
-      try { localStorage.setItem(STAFF_KEY, name); } catch(err){}
-      signupForm.reset();
-      updateStaffUI();
+    });
+  }
+
+  function readFileAsDataUrl(file){
+    return new Promise(function(resolve){
+      var reader = new FileReader();
+      reader.onload = function(){ resolve(reader.result); };
+      reader.onerror = function(){ resolve(null); };
+      reader.readAsDataURL(file);
     });
   }
 
   if (form){
-    form.addEventListener('submit', function(e){
+    form.addEventListener('submit', async function(e){
       e.preventDefault();
+      if (!supabaseClient || !currentUser) return;
       var title = document.getElementById('news-title').value.trim();
       var dateInput = document.getElementById('news-date').value;
       var date = dateInput || new Date().toISOString().slice(0, 10);
@@ -1948,33 +1953,33 @@
       if (!title || !excerpt) return;
       var fileInput = document.getElementById('news-image');
       var file = fileInput && fileInput.files && fileInput.files[0];
+      var submitBtn = form.querySelector('button[type="submit"]');
 
-      function finish(imageDataUrl){
-        var posts = loadPosts();
-        var editingId = form.dataset.editingId;
-        if (editingId){
-          posts = posts.map(function(p){
-            return p.id === editingId
-              ? {id:p.id, title:title, date:date, excerpt:excerpt, image: imageDataUrl || p.image, author: p.author}
-              : p;
-          });
-          delete form.dataset.editingId;
-        } else {
-          posts.push({id:'p' + Date.now(), title:title, date:date, excerpt:excerpt, image:imageDataUrl || null, author: staffName()});
-        }
-        savePosts(posts);
-        render();
-        form.reset();
-        if (formTitle) formTitle.textContent = 'Publicar notícia';
-      }
-
-      if (file){
-        var reader = new FileReader();
-        reader.onload = function(){ finish(reader.result); };
-        reader.readAsDataURL(file);
+      if (submitBtn) submitBtn.disabled = true;
+      var imageDataUrl = file ? await readFileAsDataUrl(file) : null;
+      var editingId = form.dataset.editingId;
+      var result;
+      if (editingId){
+        var updateData = {title:title, date:date, excerpt:excerpt};
+        if (imageDataUrl) updateData.image_url = imageDataUrl;
+        result = await supabaseClient.from('news').update(updateData).eq('id', editingId);
+        delete form.dataset.editingId;
       } else {
-        finish(null);
+        result = await supabaseClient.from('news').insert({
+          title:title, date:date, excerpt:excerpt,
+          image_url: imageDataUrl || null,
+          author: currentUser.name
+        });
       }
+      if (submitBtn) submitBtn.disabled = false;
+
+      if (result.error){
+        window.alert('Não foi possível salvar: ' + result.error.message);
+        return;
+      }
+      await render();
+      form.reset();
+      if (formTitle) formTitle.textContent = 'Publicar notícia';
     });
   }
 
@@ -1985,23 +1990,24 @@
     });
   }
 
-  grid.addEventListener('click', function(e){
+  grid.addEventListener('click', async function(e){
     var delBtn = e.target.closest('.news-delete');
     var editBtn = e.target.closest('.news-edit');
     if (delBtn){
       var id = delBtn.getAttribute('data-id');
-      if (window.confirm('Excluir esta notícia?')){
-        savePosts(loadPosts().filter(function(p){ return p.id !== id; }));
+      if (window.confirm('Excluir esta notícia?') && supabaseClient){
+        await supabaseClient.from('news').delete().eq('id', id);
         render();
       }
     } else if (editBtn){
       var id2 = editBtn.getAttribute('data-id');
-      var post = loadPosts().filter(function(p){ return p.id === id2; })[0];
+      var posts = await loadPosts();
+      var post = posts.filter(function(p){ return String(p.id) === id2; })[0];
       if (post && form){
         document.getElementById('news-title').value = post.title;
         document.getElementById('news-date').value = post.date;
         document.getElementById('news-excerpt').value = post.excerpt;
-        form.dataset.editingId = id2;
+        form.dataset.editingId = post.id;
         if (formTitle) formTitle.textContent = 'Editando notícia';
         if (adminPanel) adminPanel.hidden = false;
         form.scrollIntoView({behavior:'smooth', block:'center'});
@@ -2009,7 +2015,22 @@
     }
   });
 
-  updateStaffUI();
+  if (supabaseClient){
+    supabaseClient.auth.onAuthStateChange(function(event, session){
+      if (session && session.user){
+        currentUser = {
+          id: session.user.id,
+          email: session.user.email,
+          name: (session.user.user_metadata && session.user.user_metadata.name) || session.user.email
+        };
+      } else {
+        currentUser = null;
+      }
+      updateStaffUI();
+    });
+  } else {
+    render();
+  }
 })();
 </script>
 </body>
